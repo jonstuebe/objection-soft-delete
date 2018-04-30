@@ -3,6 +3,7 @@
 module.exports = (incomingOptions) => {
   const options = Object.assign({
     columnName: 'deleted',
+    columnType: 'boolean'
   }, incomingOptions);
 
   return (Model) => {
@@ -13,7 +14,12 @@ module.exports = (incomingOptions) => {
           softDelete: true,
         });
         const patch = {};
-        patch[options.columnName] = true;
+        let val = true;
+        if(options.columnType === 'timestamp') {
+          val = new Date().toISOString();
+        }
+        patch[options.columnName] = val;
+        
         return this.patch(patch);
       }
 
@@ -28,20 +34,32 @@ module.exports = (incomingOptions) => {
           undelete: true,
         });
         const patch = {};
-        patch[options.columnName] = false;
+        let val = false;
+        if(options.columnType === 'timestamp') {
+          val = null;
+        }
+        patch[options.columnName] = val;
         return this.patch(patch);
       }
 
       // provide a way to filter to ONLY deleted records without having to remember the column name
       whereDeleted() {
         // qualify the column name
-        return this.where(`${this.modelClass().tableName}.${options.columnName}`, true);
+        if(options.columnType === 'timestamp') {
+          return this.whereNotNull(`${this.modelClass().tableName}.${options.columnName}`);
+        } else {
+          return this.where(`${this.modelClass().tableName}.${options.columnName}`, true);
+        }
       }
 
       // provide a way to filter out deleted records without having to remember the column name
       whereNotDeleted() {
         // qualify the column name
-        return this.where(`${this.modelClass().tableName}.${options.columnName}`, false);
+        if(options.columnType === 'timestamp') {
+          return this.whereNull(`${this.modelClass().tableName}.${options.columnName}`);
+        } else {
+          return this.where(`${this.modelClass().tableName}.${options.columnName}`, false);
+        }
       }
     }
     return class extends Model {

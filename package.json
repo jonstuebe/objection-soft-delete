@@ -1,5 +1,5 @@
 {
-  "name": "objection-soft-delete",
+  "name": "@jonstuebe/objection-soft-delete",
   "version": "1.0.4",
   "description": "A plugin for objection js to support soft delete functionallity",
   "main": "index.js",
